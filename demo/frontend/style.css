@@ -1,0 +1,66 @@
+/* Base Custom Styles to support Tailwind configuration */
+body {
+    background-color: #0a0e1a;
+    color: #dbe2fb;
+}
+
+/* Glassmorphism & Depth */
+.glass-card {
+    background: rgba(20, 27, 45, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.glass-panel {
+    background: rgba(20, 27, 45, 0.8);
+    backdrop-filter: blur(40px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+}
+
+/* Glow Effects */
+.glow-primary {
+    filter: drop-shadow(0 0 10px rgba(168, 232, 255, 0.3));
+}
+
+.glow-danger {
+    filter: drop-shadow(0 0 10px rgba(255, 180, 171, 0.3));
+}
+
+.glow-success {
+    filter: drop-shadow(0 0 10px rgba(62, 254, 138, 0.3));
+}
+
+/* Editor */
+.editor-bg {
+    background-color: #05070a;
+}
+
+#code-editor {
+    /* Custom scrollbar for editor */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
+}
+
+#code-editor::-webkit-scrollbar {
+    width: 8px;
+}
+
+#code-editor::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 4px;
+}
+
+/* Spinner Animation */
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
