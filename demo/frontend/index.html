@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Defect-Scanner | AI Interface</title>
+    
+    <!-- Scripts & Fonts -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@450&amp;display=swap" rel="stylesheet"/>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Tailwind Config from Stitch Design System -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#5800c8",
+                        "on-surface": "#dbe2fb",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-low": "#141b2d",
+                        "tertiary-container": "#00e073",
+                        "outline-variant": "#3c494e",
+                        "on-error": "#690005",
+                        "inverse-primary": "#00677e",
+                        "inverse-on-surface": "#293043",
+                        "secondary-container": "#6902ea",
+                        "background": "#0c1324",
+                        "outline": "#859398",
+                        "on-background": "#dbe2fb",
+                        "error-container": "#93000a",
+                        "primary-container": "#00d4ff",
+                        "on-tertiary-fixed-variant": "#005226",
+                        "error": "#ffb4ab",
+                        "on-primary": "#003642",
+                        "secondary-fixed": "#eaddff",
+                        "surface-tint": "#3cd7ff",
+                        "secondary-fixed-dim": "#d1bcff",
+                        "surface-container-lowest": "#070e1f",
+                        "secondary": "#d1bcff",
+                        "primary-fixed-dim": "#3cd7ff",
+                        "on-tertiary": "#003918",
+                        "tertiary-fixed": "#62ff96",
+                        "surface": "#0c1324",
+                        "surface-bright": "#32394c",
+                        "surface-dim": "#0c1324",
+                        "on-primary-fixed-variant": "#004e5f",
+                        "on-tertiary-container": "#005d2c",
+                        "surface-container-high": "#232a3c",
+                        "on-primary-container": "#00586b",
+                        "on-secondary": "#3d008f",
+                        "surface-container-highest": "#2d3448",
+                        "surface-container": "#181f31",
+                        "on-tertiary-fixed": "#00210b",
+                        "inverse-surface": "#dbe2fb",
+                        "tertiary": "#3efe8a",
+                        "primary-fixed": "#b4ebff",
+                        "primary": "#a8e8ff",
+                        "tertiary-fixed-dim": "#00e475",
+                        "surface-variant": "#2d3448",
+                        "on-surface-variant": "#bbc9cf",
+                        "on-secondary-fixed": "#24005b",
+                        "on-primary-fixed": "#001f27",
+                        "on-secondary-container": "#d4c0ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "margin": "32px",
+                        "xl": "40px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "code-md": ["JetBrains Mono"],
+                        "headline-md": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "code-md": ["14px", { "lineHeight": "22px", "fontWeight": "450" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-body-md text-body-md min-h-screen flex flex-col pt-16">
+    <!-- TopNavBar -->
+    <nav class="bg-background/60 backdrop-blur-[20px] dark:bg-background/60 text-primary dark:text-primary docked full-width top-0 border-b border-white/10 flat no shadows fixed top-0 left-0 w-full z-50 flex justify-between items-center px-lg h-16">
+        <div class="text-headline-md font-headline-md font-bold tracking-tight text-primary flex items-center gap-2">
+            <span class="material-symbols-outlined">security</span>
+            Defect-Scanner AI
+        </div>
+        <div class="hidden md:flex gap-lg">
+            <a class="text-on-surface-variant hover:text-primary transition-colors text-label-caps font-label-caps" href="#">Dashboard</a>
+            <a class="text-primary font-bold border-b-2 border-primary pb-1 text-label-caps font-label-caps" href="#">Detect</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors text-label-caps font-label-caps" href="#evaluation">Compare Models</a>
+        </div>
+        <div class="flex items-center gap-md">
+            <button id="theme-btn" class="hover:bg-white/5 transition-all duration-300 p-2 rounded-full text-primary">
+                <span id="theme-icon" class="material-symbols-outlined">dark_mode</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow container mx-auto px-gutter py-xl flex flex-col gap-lg">
+        
+        <!-- Header Section -->
+        <header class="flex justify-between items-end mb-md">
+            <div>
+                <h1 class="font-headline-xl text-headline-xl text-on-surface">Vulnerability Detection</h1>
+                <p class="font-body-md text-body-md text-on-surface-variant mt-sm">Upload or paste C/C++ source code to analyze against CodeBERT models.</p>
+            </div>
+            <button id="export-btn" class="glass-card hover:bg-white/5 transition-all duration-300 px-md py-sm rounded flex items-center gap-sm text-primary border border-primary">
+                <span class="material-symbols-outlined text-sm">download</span>
+                <span class="font-label-caps text-label-caps">Export Report</span>
+            </button>
+        </header>
+
+        <!-- Top Row: Editor & Config -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+            
+            <!-- Code Editor Area (Replaced Table with Textarea for Demo) -->
+            <div class="col-span-1 md:col-span-8 rounded-xl overflow-hidden border border-white/10 flex flex-col glass-card min-h-[350px]">
+                <div class="bg-surface-container-highest px-md py-sm flex justify-between items-center border-b border-white/5">
+                    <div class="flex items-center gap-sm">
+                        <span class="material-symbols-outlined text-sm text-on-surface-variant">description</span>
+                        <span class="font-body-sm text-body-sm text-on-surface">source_code.cpp</span>
+                    </div>
+                    <span class="font-label-caps text-label-caps text-on-surface-variant bg-surface px-2 py-1 rounded">C/C++</span>
+                </div>
+                <div class="editor-bg flex-grow relative flex">
+                    <textarea id="code-editor" class="w-full h-full bg-transparent text-primary/90 font-code-md text-code-md p-md outline-none resize-none border-none focus:ring-0" placeholder="Paste your C/C++ code here..."></textarea>
+                </div>
+            </div>
+
+            <!-- Configuration Panel -->
+            <div class="col-span-1 md:col-span-4 glass-card rounded-xl p-lg flex flex-col gap-md">
+                <h3 class="font-headline-md text-headline-md text-on-surface border-b border-white/5 pb-sm">Analysis Config</h3>
+                
+                <div class="flex flex-col gap-xs">
+                    <label class="font-label-caps text-label-caps text-on-surface-variant">Word Embedding</label>
+                    <select class="w-full bg-surface-container-highest border border-outline-variant rounded p-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                        <option>CodeBERT</option>
+                        <option>Word2Vec</option>
+                    </select>
+                </div>
+                
+                <div class="flex flex-col gap-xs">
+                    <label class="font-label-caps text-label-caps text-on-surface-variant">Deep Learning Model</label>
+                    <select class="w-full bg-surface-container-highest border border-outline-variant rounded p-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                        <option>CNN (Recommended)</option>
+                        <option>BiLSTM</option>
+                        <option>Transformer</option>
+                        <option>RNN</option>
+                    </select>
+                </div>
+                
+                <div class="flex flex-col gap-xs mt-sm">
+                    <div class="flex justify-between">
+                        <label class="font-label-caps text-label-caps text-on-surface-variant">Sequence Length</label>
+                        <span class="font-code-md text-code-md text-primary">128</span>
+                    </div>
+                    <input class="w-full accent-primary" max="512" min="128" type="range" value="128" disabled/>
+                </div>
+                
+                <button id="scan-btn" class="mt-auto w-full bg-primary text-on-primary font-headline-md text-body-lg font-bold py-md rounded-lg glow-primary hover:bg-primary-fixed-dim transition-colors flex items-center justify-center gap-sm">
+                    <span class="material-symbols-outlined" id="btn-icon">analytics</span>
+                    <span id="btn-text">Run Analysis</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom Row: Results -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-gutter mt-md hidden" id="result-section">
+            
+            <!-- Metrics Card -->
+            <div class="col-span-1 md:col-span-4 glass-card rounded-xl p-md flex flex-col gap-md">
+                <h4 class="font-label-caps text-label-caps text-on-surface-variant uppercase border-b border-white/5 pb-2">Analysis Status</h4>
+                
+                <div class="flex items-center gap-md" id="status-card">
+                    <span class="material-symbols-outlined text-4xl" id="status-icon">check_circle</span>
+                    <div>
+                        <div class="font-headline-md text-headline-md" id="status-title">Safe</div>
+                        <div class="font-body-sm text-on-surface-variant" id="status-message">Code looks good</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-sm mt-auto">
+                    <div class="bg-surface-container-low p-sm rounded border border-white/5 flex flex-col items-center">
+                        <span class="font-body-sm text-body-sm text-on-surface-variant">Vulnerability Risk</span>
+                        <span class="font-headline-md text-headline-md text-primary" id="score-value">0%</span>
+                    </div>
+                    <div class="bg-surface-container-low p-sm rounded border border-white/5 flex flex-col items-center">
+                        <span class="font-body-sm text-body-sm text-on-surface-variant">Time Taken</span>
+                        <span class="font-headline-md text-headline-md text-tertiary">1.2s</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vulnerabilities List -->
+            <div class="col-span-1 md:col-span-8 glass-card rounded-xl p-md flex flex-col">
+                <h4 class="font-label-caps text-label-caps text-on-surface-variant mb-md uppercase flex justify-between border-b border-white/5 pb-2">
+                    Detected Anomalies 
+                    <span id="anomaly-badge" class="bg-primary/20 text-primary px-2 rounded-full">0</span>
+                </h4>
+                
+                <div id="vulnerability-list" class="flex-grow flex flex-col gap-sm">
+                    <!-- Default Empty State -->
+                    <div class="flex items-center justify-center h-full text-on-surface-variant italic">
+                        No anomalies detected in the current code snippet.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empirical Evaluation Chart -->
+        <section id="evaluation" class="glass-card rounded-xl p-lg mt-xl border border-white/10">
+            <div class="flex justify-between items-center mb-md border-b border-white/5 pb-sm">
+                <h2 class="font-headline-lg text-headline-lg text-on-surface">Empirical Evaluation Results</h2>
+                <span class="font-label-caps text-label-caps text-tertiary bg-tertiary/10 px-3 py-1 rounded-full border border-tertiary/30">From Paper</span>
+            </div>
+            <p class="font-body-md text-on-surface-variant mb-lg">Comparison of different word embeddings and deep learning models based on the test dataset (Code Gadgets / SeVCs) as published in the research.</p>
+            
+            <div class="w-full bg-[#05070a] border border-white/5 rounded-lg p-md" style="height: 400px;">
+                <canvas id="metricsChart"></canvas>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-surface-container-lowest/80 backdrop-blur-[20px] border-t border-white/5 py-md px-lg flex justify-between text-on-surface-variant font-label-caps mt-auto">
+        <div>© 2026 Defect-Scanner Security Research</div>
+        <div class="flex gap-md">
+            <a href="#" class="hover:text-primary transition-colors">Paper</a>
+            <a href="#" class="hover:text-primary transition-colors">GitHub</a>
+        </div>
+    </footer>
+    
+    <script src="app.js"></script>
+</body>
+</html>
