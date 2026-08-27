@@ -5,17 +5,11 @@ from torch.utils.data import DataLoader, Dataset
 from model import DefectScannerCNN, get_tokenizer
 import os
 
-# Toy dataset for demonstration
-code_samples = [
-    # Vulnerable samples (CWE-119 Buffer Overflow, etc.)
-    {"code": "void func(char *str) { char buffer[10]; strcpy(buffer, str); }", "label": 1},
-    {"code": "int main() { char buf[50]; gets(buf); return 0; }", "label": 1},
-    {"code": "void copy_data(char *src) { char dest[128]; sprintf(dest, \"%s\", src); }", "label": 1},
-    # Safe samples
-    {"code": "void func(char *str) { char buffer[10]; strncpy(buffer, str, sizeof(buffer)-1); buffer[9] = '\\0'; }", "label": 0},
-    {"code": "int main() { char buf[50]; fgets(buf, sizeof(buf), stdin); return 0; }", "label": 0},
-    {"code": "void copy_data(char *src) { char dest[128]; snprintf(dest, sizeof(dest), \"%s\", src); }", "label": 0},
-]
+import json
+
+# Load dataset generated previously
+with open('mini_dataset.json', 'r') as f:
+    code_samples = json.load(f)
 
 class CodeDataset(Dataset):
     def __init__(self, data, tokenizer, max_length=128):
@@ -44,7 +38,7 @@ class CodeDataset(Dataset):
 def train():
     print("Initializing tokenizer and dataset...")
     tokenizer = get_tokenizer()
-    dataset = CodeDataset(code_samples * 10, tokenizer) # duplicate data to have enough batches
+    dataset = CodeDataset(code_samples, tokenizer)
     dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
 
     print("Initializing model CodeBERT + CNN...")
@@ -52,9 +46,11 @@ def train():
     model = DefectScannerCNN().to(device)
     
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-4)
+    optimizer = optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-4) # Added Weight Decay to prevent overfitting
     
     epochs = 3
+    epoch_losses = []
+    
     print(f"Starting training on {device} for {epochs} epochs...")
     for epoch in range(epochs):
         model.train()
@@ -72,11 +68,27 @@ def train():
             
             total_loss += loss.item()
             
-        print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(dataloader):.4f}")
+        avg_loss = total_loss / len(dataloader)
+        epoch_losses.append(avg_loss)
+        print(f"Epoch {epoch+1}/{epochs}, Loss: {avg_loss:.4f}")
         
     os.makedirs('weights', exist_ok=True)
     torch.save(model.state_dict(), 'weights/model.pth')
     print("Training complete. Model saved to weights/model.pth")
+    
+    try:
+        import matplotlib.pyplot as plt
+        plt.figure(figsize=(8, 5))
+        plt.plot(range(1, epochs + 1), epoch_losses, marker='o', linestyle='-', color='b', label='Training Loss')
+        plt.title('Training Loss per Epoch (9000 samples)')
+        plt.xlabel('Epoch')
+        plt.ylabel('Cross-Entropy Loss')
+        plt.grid(True)
+        plt.legend()
+        plt.savefig('loss_chart.png')
+        print("Loss chart saved to loss_chart.png")
+    except ImportError:
+        print("matplotlib not installed. Skipping loss chart generation.")
 
 if __name__ == "__main__":
     train()

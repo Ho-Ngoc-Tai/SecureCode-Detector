@@ -1,10 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import torch
 import torch.nn.functional as F
 from model import DefectScannerCNN, get_tokenizer
 import os
+import zipfile
+import io
 
 app = FastAPI(title="Defect-Scanner API")
 
@@ -41,15 +43,10 @@ async def startup_event():
         print("WARNING: Model weights not found. Using untrained model.")
     model.eval()
 
-@app.post("/api/scan")
-async def scan_code(request: ScanRequest):
-    code = request.code
-    if not code.strip():
-        return {"status": "error", "message": "Empty code provided"}
-
+def predict_chunk(code_chunk: str):
     # Tokenize the input code
     encoding = tokenizer(
-        code,
+        code_chunk,
         truncation=True,
         padding='max_length',
         max_length=128,
@@ -63,29 +60,92 @@ async def scan_code(request: ScanRequest):
     with torch.no_grad():
         logits = model(input_ids, attention_mask)
         probs = F.softmax(logits, dim=1)
-        prob_vulnerable = probs[0][1].item()
         
-    is_vulnerable = prob_vulnerable > 0.5
+        predicted_class_id = torch.argmax(probs, dim=1).item()
+        confidence = probs[0][predicted_class_id].item()
+        
+    return predicted_class_id, confidence
+
+def analyze_code(code: str):
+    # Split code into chunks (e.g. by double newline or chunks of lines)
+    # For PoC, we will split into chunks of ~20 lines
+    lines = code.split('\n')
+    chunk_size = 20
     
-    # --- DEMO ENHANCER (Hybrid Analysis) ---
-    # To guarantee a flawless presentation, we combine AI with a heuristic rule.
-    # If the AI model is untrained, it might guess wrong. This rule acts as a safety net.
-    unsafe_keywords = ["strcpy(", "gets(", "sprintf("]
-    safe_keywords = ["strncpy(", "fgets(", "snprintf("]
+    worst_class = 0 # 0=Safe, 1=CWE-119, 2=CWE-399
+    highest_confidence = 0.0
     
-    has_unsafe = any(kw in code for kw in unsafe_keywords)
-    has_safe = any(kw in code for kw in safe_keywords)
-    
-    if has_unsafe:
-        is_vulnerable = True
-        prob_vulnerable = max(prob_vulnerable, 0.85) # Boost confidence
-    elif has_safe and not has_unsafe:
-        is_vulnerable = False
-        prob_vulnerable = min(prob_vulnerable, 0.15) # Lower confidence
+    if not lines:
+        return 0, 1.0 # Safe
+        
+    for i in range(0, len(lines), chunk_size):
+        chunk = '\n'.join(lines[i:i+chunk_size])
+        if not chunk.strip():
+            continue
+            
+        pred_class, conf = predict_chunk(chunk)
+        # Prioritize vulnerable over safe, and higher confidence
+        if pred_class != 0:
+            if worst_class == 0 or conf > highest_confidence:
+                worst_class = pred_class
+                highest_confidence = conf
+        else:
+            if worst_class == 0 and conf > highest_confidence:
+                highest_confidence = conf
+                
+    return worst_class, highest_confidence
+
+def format_result(pred_class, conf):
+    is_vulnerable = pred_class != 0
+    if pred_class == 1:
+        cwe_id = "CWE-119"
+        details = "Buffer Copy without Checking Size of Input / Out-of-bounds Write"
+    elif pred_class == 2:
+        cwe_id = "CWE-399"
+        details = "Resource Management Error (Memory Leak / Double Free / Use After Free)"
+    else:
+        cwe_id = "SAFE"
+        details = "Code conforms to security patterns."
         
     return {
         "status": "success",
         "is_vulnerable": is_vulnerable,
-        "vulnerability_score": prob_vulnerable,
-        "details": "Potential vulnerability detected." if is_vulnerable else "Code appears safe."
+        "cwe_id": cwe_id,
+        "vulnerability_score": conf,
+        "details": details
     }
+
+@app.post("/api/scan")
+async def scan_code(request: ScanRequest):
+    code = request.code
+    if not code.strip():
+        return {"status": "error", "message": "Empty code provided"}
+        
+    pred_class, conf = analyze_code(code)
+    return format_result(pred_class, conf)
+
+@app.post("/api/scan_file")
+async def scan_file(file: UploadFile = File(...)):
+    content = await file.read()
+    results = []
+    
+    if file.filename.endswith('.zip'):
+        # Parse zip file
+        with zipfile.ZipFile(io.BytesIO(content)) as zip_ref:
+            for zip_info in zip_ref.infolist():
+                if zip_info.is_dir() or not zip_info.filename.endswith(('.c', '.cpp', '.h')):
+                    continue
+                file_content = zip_ref.read(zip_info.filename).decode('utf-8', errors='ignore')
+                pred_class, conf = analyze_code(file_content)
+                res = format_result(pred_class, conf)
+                res["filename"] = zip_info.filename
+                results.append(res)
+    else:
+        # Parse single file
+        file_content = content.decode('utf-8', errors='ignore')
+        pred_class, conf = analyze_code(file_content)
+        res = format_result(pred_class, conf)
+        res["filename"] = file.filename
+        results.append(res)
+        
+    return {"status": "success", "results": results}
