@@ -29,8 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMode = 'paste'; // 'paste' or 'upload'
     let selectedFile = null;
 
-    const API_URL = 'http://127.0.0.1:8000/api/scan';
-    const API_FILE_URL = 'http://127.0.0.1:8000/api/scan_file';
+    const API_URL = '/api/scan';
+    const API_FILE_URL = '/api/scan_file';
 
     // Tab switching
     tabPaste.addEventListener('click', () => {

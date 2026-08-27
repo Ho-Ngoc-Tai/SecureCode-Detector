@@ -1,5 +1,6 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import torch
 import torch.nn.functional as F
@@ -149,3 +150,6 @@ async def scan_file(file: UploadFile = File(...)):
         results.append(res)
         
     return {"status": "success", "results": results}
+
+# Mount frontend static files
+app.mount('/', StaticFiles(directory='../frontend', html=True), name='frontend')
