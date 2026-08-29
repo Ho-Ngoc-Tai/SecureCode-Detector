@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile
+﻿from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -38,7 +38,7 @@ async def startup_event():
     
     weight_path = "weights/model.pth"
     if os.path.exists(weight_path):
-        model.load_state_dict(torch.load(weight_path, map_location=device))
+        model.load_state_dict(torch.load(weight_path, map_location=device, weights_only=False))
         print(f"Loaded weights from {weight_path}")
     else:
         print("WARNING: Model weights not found. Using untrained model.")
@@ -69,7 +69,6 @@ def predict_chunk(code_chunk: str):
 
 def analyze_code(code: str):
     # Split code into chunks (e.g. by double newline or chunks of lines)
-    # For PoC, we will split into chunks of ~20 lines
     lines = code.split('\n')
     chunk_size = 20
     

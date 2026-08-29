@@ -8,13 +8,13 @@ import sys
 
 def start_server():
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, log_level="warning")
+    uvicorn.run("main:app", host="127.0.0.1", port=8080, log_level="warning")
 
 def main():
     print("=" * 65)
     print("        DEFECT-SCANNER AI - MASTER'S THESIS DEMO SERVER")
     print("=" * 65)
-    print("\n[1/3] Khoi dong AI Server ngam (Port 8000)...")
+    print("\n[1/3] Khoi dong AI Server ngam (Port 8080)...")
     server_thread = threading.Thread(target=start_server, daemon=True)
     server_thread.start()
     time.sleep(3)
@@ -26,7 +26,7 @@ def main():
     if not os.path.exists(cloudflared_path):
         cloudflared_path = "cloudflared"
         
-    cmd = [cloudflared_path, "tunnel", "--url", "http://127.0.0.1:8000"]
+    cmd = [cloudflared_path, "tunnel", "--url", "http://127.0.0.1:8080"]
     
     try:
         proc = subprocess.Popen(
@@ -38,8 +38,8 @@ def main():
             errors="replace"
         )
     except Exception as e:
-        print(f"\nKhong tim thay cloudflared.exe ({e}). Chay tren Local: http://127.0.0.1:8000")
-        webbrowser.open("http://127.0.0.1:8000")
+        print(f"\nKhong tim thay cloudflared.exe ({e}). Chay tren Local: http://127.0.0.1:8080")
+        webbrowser.open("http://127.0.0.1:8080")
         while True:
             time.sleep(1)
         return
@@ -56,14 +56,14 @@ def main():
     print("\n" + "=" * 65)
     print("       HE THONG DEFECT-SCANNER DA ONLINE SAN SANG!")
     print("=" * 65)
-    print(f"\n  >> LINK NOI BO (Local):   http://127.0.0.1:8000")
+    print(f"\n  >> LINK NOI BO (Local):   http://127.0.0.1:8080")
     if public_url:
         print(f"  >> LINK PUBLIC (Hoi Dong): {public_url}")
         print("\n  (Dung dien thoai hoac laptop khac truy cap vao Link Public tren)")
         webbrowser.open(public_url)
     else:
         print("\n  >> Dang mo Localhost...")
-        webbrowser.open("http://127.0.0.1:8000")
+        webbrowser.open("http://127.0.0.1:8080")
         
     print("\n" + "=" * 65)
     print("Nhan Ctrl + C de dung he thong.\n")
