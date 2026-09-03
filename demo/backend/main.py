@@ -1,4 +1,4 @@
-﻿from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -23,6 +23,12 @@ app.add_middleware(
 class ScanRequest(BaseModel):
     code: str
 
+# Define robust absolute paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "frontend"))
+WEIGHTS_PATH = os.path.join(BASE_DIR, "weights", "model.pth")
+ROOT_WEIGHTS_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "weights", "model.pth"))
+
 # Global variables for model and tokenizer
 model = None
 tokenizer = None
@@ -36,10 +42,17 @@ async def startup_event():
     print("Loading model...")
     model = DefectScannerCNN().to(device)
     
-    weight_path = "weights/model.pth"
-    if os.path.exists(weight_path):
-        model.load_state_dict(torch.load(weight_path, map_location=device, weights_only=False))
-        print(f"Loaded weights from {weight_path}")
+    # Check weights path
+    if os.path.exists(WEIGHTS_PATH):
+        chosen_weight = WEIGHTS_PATH
+    elif os.path.exists(ROOT_WEIGHTS_PATH):
+        chosen_weight = ROOT_WEIGHTS_PATH
+    else:
+        chosen_weight = None
+
+    if chosen_weight:
+        model.load_state_dict(torch.load(chosen_weight, map_location=device, weights_only=False))
+        print(f"Loaded weights from {chosen_weight}")
     else:
         print("WARNING: Model weights not found. Using untrained model.")
     model.eval()
@@ -72,7 +85,7 @@ def analyze_code(code: str):
     lines = code.split('\n')
     chunk_size = 20
     
-    worst_class = 0 # 0=Safe, 1=CWE-119, 2=CWE-399
+    worst_class = 0 # 0=Safe, 1=Vulnerable
     highest_confidence = 0.0
     
     if not lines:
@@ -85,7 +98,7 @@ def analyze_code(code: str):
             
         pred_class, conf = predict_chunk(chunk)
         # Prioritize vulnerable over safe, and higher confidence
-        if pred_class != 0:
+        if pred_class == 1:
             if worst_class == 0 or conf > highest_confidence:
                 worst_class = pred_class
                 highest_confidence = conf
@@ -96,13 +109,10 @@ def analyze_code(code: str):
     return worst_class, highest_confidence
 
 def format_result(pred_class, conf):
-    is_vulnerable = pred_class != 0
-    if pred_class == 1:
-        cwe_id = "CWE-119"
-        details = "Buffer Copy without Checking Size of Input / Out-of-bounds Write"
-    elif pred_class == 2:
-        cwe_id = "CWE-399"
-        details = "Resource Management Error (Memory Leak / Double Free / Use After Free)"
+    is_vulnerable = pred_class == 1
+    if is_vulnerable:
+        cwe_id = "VULNERABLE"
+        details = "Potential security vulnerability detected."
     else:
         cwe_id = "SAFE"
         details = "Code conforms to security patterns."
@@ -151,4 +161,7 @@ async def scan_file(file: UploadFile = File(...)):
     return {"status": "success", "results": results}
 
 # Mount frontend static files
-app.mount('/', StaticFiles(directory='../frontend', html=True), name='frontend')
+if os.path.exists(FRONTEND_DIR):
+    app.mount('/', StaticFiles(directory=FRONTEND_DIR, html=True), name='frontend')
+else:
+    print(f"Warning: FRONTEND_DIR not found at {FRONTEND_DIR}")

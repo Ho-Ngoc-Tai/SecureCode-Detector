@@ -193,8 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (res.is_vulnerable) worstClass = res.cwe_id;
             }
             
-            let colorClass = res.is_vulnerable ? (res.cwe_id === 'CWE-119' ? 'text-error' : 'text-[#ff9800]') : 'text-tertiary';
-            let bgBorder = res.is_vulnerable ? (res.cwe_id === 'CWE-119' ? 'bg-error glow-danger' : 'bg-[#ff9800] shadow-[0_0_10px_#ff9800]') : 'bg-tertiary';
+            let colorClass = res.is_vulnerable ? 'text-error' : 'text-tertiary';
+            let bgBorder = res.is_vulnerable ? 'bg-error glow-danger' : 'bg-tertiary';
             
             htmlContent += `
                 <div class="bg-surface-container-low border border-white/10 rounded p-sm relative overflow-hidden mb-2">
@@ -225,11 +225,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (totalVulns > 0) {
             statusIcon.textContent = 'warning';
-            statusIcon.classList.add(worstClass === 'CWE-119' ? 'text-error' : 'text-[#ff9800]');
+            statusIcon.classList.add('text-error');
             statusTitle.textContent = `${totalVulns} Vulnerability(s) Detected`;
-            statusTitle.classList.add(worstClass === 'CWE-119' ? 'text-error' : 'text-[#ff9800]');
+            statusTitle.classList.add('text-error');
             statusMessage.textContent = 'Project contains high-risk vulnerabilities.';
-            anomalyBadge.className = `px-2 rounded-full ${worstClass === 'CWE-119' ? 'bg-error-container text-on-error-container' : 'bg-[#ff9800]/20 text-[#ff9800]'}`;
+            anomalyBadge.className = 'px-2 rounded-full bg-error-container text-on-error-container';
         } else {
             statusIcon.textContent = 'check_circle';
             statusIcon.classList.add('text-tertiary');
@@ -253,31 +253,12 @@ document.addEventListener('DOMContentLoaded', () => {
         anomalyBadge.className = 'px-2 rounded-full';
         
         if (data.is_vulnerable) {
-            let colorClass = '';
-            let bgClass = '';
-            let severity = '';
+            let colorClass = 'text-error';
+            let bgClass = 'bg-error-container text-on-error-container';
+            let severity = 'CRITICAL';
             
-            if (data.cwe_id === 'CWE-119') {
-                // Buffer Overflow - Critical Red
-                colorClass = 'text-error';
-                bgClass = 'bg-error-container text-on-error-container';
-                severity = 'CRITICAL';
-                statusIcon.textContent = 'warning';
-                statusTitle.textContent = 'Critical Buffer Overflow';
-            } else if (data.cwe_id === 'CWE-399') {
-                // Resource Management - Orange/Warning (Using primary color as warning for now, or custom hex)
-                colorClass = 'text-[#ff9800]';
-                bgClass = 'bg-[#ff9800]/20 text-[#ff9800]';
-                severity = 'HIGH';
-                statusIcon.textContent = 'memory';
-                statusTitle.textContent = 'Resource Management Error';
-            } else {
-                colorClass = 'text-error';
-                bgClass = 'bg-error-container text-on-error-container';
-                severity = 'UNKNOWN';
-                statusIcon.textContent = 'error';
-                statusTitle.textContent = 'Vulnerability Detected';
-            }
+            statusIcon.textContent = 'warning';
+            statusTitle.textContent = 'Vulnerability Detected';
 
             statusIcon.classList.add(colorClass);
             statusTitle.classList.add(colorClass);
@@ -289,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Build Vulnerability List item with dynamic colors
             vulnerabilityList.innerHTML = `
                 <div class="bg-surface-container-low border border-white/10 rounded p-sm relative overflow-hidden group hover:border-white/20 transition-all duration-300">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 ${data.cwe_id === 'CWE-119' ? 'bg-error glow-danger' : 'bg-[#ff9800] shadow-[0_0_10px_#ff9800]'}"></div>
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-error glow-danger"></div>
                     <div class="pl-2">
                         <div class="flex justify-between items-start mb-xs">
                             <span class="font-code-md text-code-md ${colorClass} font-bold">${data.cwe_id}</span>
@@ -297,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <p class="font-body-sm text-body-sm text-on-surface">${data.details}</p>
                         <div class="mt-sm flex justify-between items-center text-on-surface-variant">
-                            <span class="font-code-md text-[12px] opacity-70">CodeBERT Multi-class Confidence: ${scorePercent}%</span>
+                            <span class="font-code-md text-[12px] opacity-70">CodeBERT Binary Confidence: ${scorePercent}%</span>
                             <button class="text-primary hover:text-primary-fixed text-[12px] flex items-center gap-1 group-hover:underline">
                                 View Details <span class="material-symbols-outlined text-[12px]">arrow_forward</span>
                             </button>
@@ -338,12 +319,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let cwe_id = "SAFE";
             let details = "Code conforms to security patterns.";
             
-            if (hasBuffer) {
-                cwe_id = "CWE-119";
-                details = "Buffer Copy without Checking Size of Input / Out-of-bounds Write";
-            } else if (hasResource) {
-                cwe_id = "CWE-399";
-                details = "Resource Management Error (Memory Leak / Double Free / Use After Free)";
+            if (isVulnerable) {
+                cwe_id = "VULNERABLE";
+                details = "Potential security vulnerability detected.";
             }
             
             displayResult({

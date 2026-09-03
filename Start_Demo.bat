@@ -7,7 +7,7 @@ echo =======================================================
 echo.
 echo [1/2] Kiem tra va khoi dong Server...
 cd /d "%~dp0demo\backend"
-echo [2/2] Dang mo trinh duyet Web...
-start http://127.0.0.1:8000
-python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+echo [2/2] Dang mo trinh duyet Web (Port 8080)...
+start http://127.0.0.1:8080
+python -m uvicorn main:app --reload --host 127.0.0.1 --port 8080
 pause

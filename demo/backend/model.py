@@ -3,7 +3,7 @@ import torch.nn as nn
 from transformers import RobertaModel, RobertaTokenizer
 
 class DefectScannerCNN(nn.Module):
-    def __init__(self, codebert_model_name='microsoft/codebert-base', hidden_size=768, num_filters=128, kernel_sizes=[3, 4, 5], num_classes=3):
+    def __init__(self, codebert_model_name='microsoft/codebert-base', hidden_size=768, num_filters=128, kernel_sizes=[3, 4, 5], num_classes=2):
         super(DefectScannerCNN, self).__init__()
         # Load pre-trained CodeBERT and freeze its weights for faster CPU training
         self.codebert = RobertaModel.from_pretrained(codebert_model_name)

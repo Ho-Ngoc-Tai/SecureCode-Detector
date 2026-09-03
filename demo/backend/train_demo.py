@@ -8,7 +8,7 @@ import os
 import json
 
 # Load dataset generated previously
-with open('mini_dataset.json', 'r') as f:
+with open(r"d:\Master's Thesis\Defect-Scanner\demo\backend\mini_dataset.json", 'r') as f:
     code_samples = json.load(f)
 
 class CodeDataset(Dataset):
